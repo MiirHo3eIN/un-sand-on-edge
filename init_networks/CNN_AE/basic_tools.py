@@ -12,7 +12,7 @@ from torch import nn
 ############################################## BASIC CNN BLOCKS FOR META PAPER ##################################################################################### 
 ####################################################################################################################################################################
 
-def single_conv1d_block(in_channels: int, out_channel: int, kernel_size: int, stride: int, padding: int, padding_mode:str, *args, **kwargs) -> nn.Sequential:
+def single_conv1d_block(in_channels: int, out_channel: int, kernel_size: int, stride: int, padding: int, *args, **kwargs) -> nn.Sequential:
     """ 
     Implementing a single convolutional layer with batch normalization and ELU activation.
 
@@ -35,7 +35,7 @@ def single_conv1d_block(in_channels: int, out_channel: int, kernel_size: int, st
     """
 
     return nn.Sequential( 
-            nn.Conv1d(in_channels, out_channel, kernel_size, stride, padding, padding_mode = padding_mode, *args, **kwargs), 
+            nn.Conv1d(in_channels, out_channel, kernel_size, stride, padding, *args, **kwargs), 
             nn.BatchNorm1d(out_channel), 
             nn.ReLU()
         )
@@ -111,10 +111,10 @@ class ConvBlock(nn.Module):
         assert layers > 0
         models = []
         for _ in range(layers):
-            models.append(single_conv1d_block(in_channels = self.c_in , out_channel = self.c_in, kernel_size = self.kernel_size, stride = self.stride, padding= 1, padding_mode=self.padding_mode))
+            models.append(single_conv1d_block(in_channels = self.c_in , out_channel = self.c_in, kernel_size = self.kernel_size, stride = self.stride, padding= 1))
         self.backbone = nn.Sequential(*models)
         
-        self.downsampling = nn.Conv1d(in_channels = self.c_in, out_channels = c_out, kernel_size = self.kernel_down_sampling, stride = self.stride_down_sampling, padding = 3, padding_mode = self.padding_mode)
+        self.downsampling = nn.Conv1d(in_channels = self.c_in, out_channels = c_out, kernel_size = self.kernel_down_sampling, stride = self.stride_down_sampling, padding = 3)
 
     
     def forward(self, x: torch.Tensor) -> torch.Tensor: 
