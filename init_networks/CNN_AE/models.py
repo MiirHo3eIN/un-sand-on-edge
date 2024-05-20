@@ -11,9 +11,9 @@ from basic_tools import (
 )
 import typing as tp
 import sys
-sys.path.append("../vector-quantize-pytorch")
-sys.path.append("../vector-quantize-pytorch/vector-quantize-pytorch")
-from vector_quantize_pytorch import ResidualVQ
+# sys.path.append("../vector-quantize-pytorch")
+# sys.path.append("../vector-quantize-pytorch/vector-quantize-pytorch")
+# from vector_quantize_pytorch import ResidualVQ
 
 VECTOR_QUANTIZER = False
 
@@ -53,31 +53,14 @@ class AutoEncoder(nn.Module):
         sequential_len_enc: int
             Number of Convolutional layers, used to decrease/increase the network complexity
         """
-        if self.RVQ == True:
-            self.quantizer = ResidualVQ(
-                            dim = 100,
-                            num_quantizers = 8,                     # specify number of quantizers
-                            codebook_size = self.codebook_size,     # codebook size
-                            kmeans_init = True,      # set to True
-                            kmeans_iters = 10,      # number of kmeans iterations to calculate the centroids for the codebook on init
-                            threshold_ema_dead_code=2
-                            )
+
 
     def forward(self, x: torch.Tensor): 
         x = self.encoder(x)
-        if self.RVQ == True:
-            x, indices, commit_loss = self.quantizer(x)
-            codebooks = self.quantizer.codebooks
-            #print([len(a) for a in x])
-            #print([len(a) for a in x[0]])
-            #print(indices)
-            #print(x)
+
         x = self.decoder(x)
 
-        if self.RVQ == True:
-            return x, indices, commit_loss, codebooks
-        else:
-            return x
+        return x
     
     def get_encoder(self): 
         """
@@ -89,12 +72,8 @@ class AutoEncoder(nn.Module):
             Architecture ID of the AutoEncoder. 
         """
         
-        match self.arch_id:
+        return Encoder_aa00(c_in = self.c_in, c_factor = self.c_factor, sequetial_len = 2)
 
-            case "aa00": 
-                return Encoder_aa00(c_in = self.c_in, c_factor = self.c_factor, sequetial_len = 2)
-            case _: 
-                print("Architecture ID not found.")
 
     def get_decoder(self):
         """
@@ -106,14 +85,8 @@ class AutoEncoder(nn.Module):
             Architecture ID of the AutoEncoder. 
         """
         
-        match self.arch_id:
-
-            case "aa00": 
-                return Decoder_aa00(c_in = self.c_out, c_factor = self.c_factor, sequetial_len = 2)
-            case _: 
-                print("Architecture ID not found.")
-
-
+        return Decoder_aa00(c_in = self.c_out, c_factor = self.c_factor, sequetial_len = 2)
+           
 class Encoder_aa00(nn.Module):
     
     def __init__(self, c_in, c_factor: int = 4, sequetial_len: int = 3): 
@@ -126,16 +99,16 @@ class Encoder_aa00(nn.Module):
 
         model += [ConvBlock(c_in = int(cout), c_out = int(cout / 2), 
                                 kernel_size_residual = 3, kernel_size_down_sampling = 7, 
-                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('replicate'), layers = self.sequetial_len)] 
+                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('zeros'), layers = self.sequetial_len)] 
         for _ in range(2, c_factor, 2):
             cout = cout / 2
             model += [ConvBlock(c_in = int(cout), c_out = int(cout / 2), 
                                 kernel_size_residual = 3, kernel_size_down_sampling = 7, 
-                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('replicate'), layers = self.sequetial_len)]
+                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('zeros'), layers = self.sequetial_len)]
 
         model += [ConvBlock(c_in = int(cout / 2), c_out = int(cout / 2), 
                                 kernel_size_residual = 3, kernel_size_down_sampling = 7, 
-                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('replicate'), layers = self.sequetial_len)]
+                                stride_in = 1, strid_down_sampling = 2, padding_mode=str('zeros'), layers = self.sequetial_len)]
 
         self.conv = nn.Sequential(*model)
 
