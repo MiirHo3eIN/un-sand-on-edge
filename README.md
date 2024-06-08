@@ -56,3 +56,29 @@ source activate
 *Note:* You can chnge ```myenv``` with your desired environment name. 
 
 
+# Getting Started with PySHM
+This repository contains the front applications to achieve the results of the [TBD] paper. This application inherits features and built-in classes and methods from the two Python packages, i.e., numpy and PyTorch. Thus, a customized Python package for TimeSeries data is developed for the backend classes and methods. 
+
+The package is titled "PySHM" and is accessible [here](https://github.com/MiirHo3eIN/pyshm).
+The former package must be installed to run applications and scripts for this repository.    
+
+## Installation
+After cloning the PySHM repository, you can run the following command from the top directory to install it in your Python environment. 
+
+``` python -m pip install -e .```
+
+*Note:* A more detailed installation guide is presented in the [pyshm repository](https://github.com/MiirHo3eIN/pyshm)  
+
+
+# Offline mode Pipeline.
+In the offline phase of our application, we explore the different model-based and data-driven approaches to find the optimal solution for the anomaly detection tasks. This part of the analysis explores different hyperparameters and filtering data for a generic dataset. The whole process in divided into three main sections which are: 
+1. Pre-processing (numpy based)
+2. Training (PyTorch based)
+3. Test and Validation (Pytorch based). 
+The following figure shows our study's offline pipeline:  
+![Offline](./docs/offline_mode.png)
+
+
+# Online mode Pipeline.
+
+TODO
