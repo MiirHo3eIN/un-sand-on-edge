@@ -17,6 +17,8 @@ sns.set_style("whitegrid")
 
 
 import pyshm 
+
+from pyshm.dataloader import dataInitHealthy, dataInitAnomaly
 from pyshm.dataShaper import shaper, MeanCentering
 from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
@@ -24,41 +26,23 @@ from pyshm.augmentation import data_augmentation
 
 
 
-def data_init(type:str, anomaly_level:int = 1): 
 
-    match type:
-        case "train":
-            return [2,3,4]
-        case "test":
-            return [1] 
-        case "validation":
-            return [5]
-        case "anomaly":
-            return [anomaly_level+5]
-        case _:
-            raise ValueError("Invalid type of data")
-        
+
+
 
 
 def main():
 
     # Define the data path 
     data_path = "../../data"
-    training_experiments = data_init("train")
-    tesing_experiments = data_init("test")
-    validation_experiments = data_init("validation")
-    
-    df_train = []
-    for experiment in training_experiments:
-        data_path = f"{data_path}/exp_{experiment}.feather"
-        df_train.append(pd.read_feather(f"{data_path}"))
+    df_train = dataInitHealthy(data_path = data_path, dataset_type="train")()  
+    df_validation = dataInitHealthy(data_path = data_path,dataset_type= "validation")()
+    df_test = dataInitHealthy(data_path = data_path,dataset_type="test")()
+    anomalies = dataInitAnomaly(data_path = data_path )()
+    print(df_train)
+    print(anomalies.keys())
 
-
-    print("Loaded data")
-
-    df_train_ = pd.concat(df_train) #.sort_values(by = "ts")
-    print(df_train_.head())
-
+    exit()
 
 
     # Define the sequence length 
