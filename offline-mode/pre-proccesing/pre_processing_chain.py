@@ -97,3 +97,8 @@ def from_raw_to_normalized(sequence_length, stride):
 if __name__ == "__main__":
 
     x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= 100, stride = 50)
+
+    # Data Augmentation
+    x_tr_aug = data_augmentation(x_tr)
+    
+    print(f"Augmented Training shape: {x_tr_aug.shape}")
