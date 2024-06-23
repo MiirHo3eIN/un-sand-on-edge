@@ -13,6 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import seaborn as sns 
 from enum import Enum
+from dataclasses import dataclass
 sns.set_style("whitegrid")
 
 
@@ -26,7 +27,8 @@ from pyshm.augmentation import data_augmentation
 
 
 # Define a few global variables 
-class Dataset(Enum):
+@dataclass
+class Dataset:
     train = "train"
     validation = "validation"
     test = "test"
@@ -34,17 +36,18 @@ class Dataset(Enum):
     parent_path = "../../data"
 
 # Define the configuration of the Script
-class config(Enum):
+@dataclass
+class conf:
     sequence_length = 100
     stride = 10
     anomaly_range = list(range(1, 10))
     data_range = (-1, 1)
     lpf_cutoff = 25 
-    fs = 100
-    lpf_order = 5
+    fs = int(100)
+    lpf_order = int(5)
 
-
-class torch_loggers(Enum):
+@dataclass
+class torch_loggers:
     pass 
 
 
@@ -66,10 +69,10 @@ def from_raw_to_normalized(sequence_length, stride):
     data_shaper = shaper(sequence_len = sequence_length, stride = stride)
     # Define the Data Transformations for the data
     ztransform = Ztranform()
-    minmax_norm = Normalization(feature_range= config.data_range, clip = False)
+    minmax_norm = Normalization(feature_range= conf.data_range, clip = False)
     
     # Define the low pass filter
-    lpf = LowPassFilter(cutoff = config.lpf_cutoff, fs = config.fs, order = config.lpf_order)
+    lpf = LowPassFilter(cutoff = conf.lpf_cutoff, fs = conf.fs, order = conf.lpf_order)
     
     # load feather data
     df_train, df_validation, df_test, anomalies = get_raw_data()
@@ -117,7 +120,7 @@ def from_raw_to_normalized(sequence_length, stride):
 
 if __name__ == "__main__":
 
-    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= config.sequence_length, stride = config.stride)
+    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= conf.sequence_length, stride = conf.stride)
 
     # Data Augmentation
     x_tr_aug = data_augmentation(x_tr)
