@@ -37,7 +37,7 @@ class Dataset:
 
 # Define the configuration of the Script
 @dataclass
-class conf:
+class Conf:
     sequence_length = 100
     stride = 10
     anomaly_range = list(range(1, 10))
@@ -69,10 +69,10 @@ def from_raw_to_normalized(sequence_length, stride):
     data_shaper = shaper(sequence_len = sequence_length, stride = stride)
     # Define the Data Transformations for the data
     ztransform = Ztranform()
-    minmax_norm = Normalization(feature_range= conf.data_range, clip = False)
+    minmax_norm = Normalization(feature_range= Conf.data_range, clip = False)
     
     # Define the low pass filter
-    lpf = LowPassFilter(cutoff = conf.lpf_cutoff, fs = conf.fs, order = conf.lpf_order)
+    lpf = LowPassFilter(cutoff = Conf.lpf_cutoff, fs = Conf.fs, order = Conf.lpf_order)
     
     # load feather data
     df_train, df_validation, df_test, anomalies = get_raw_data()
@@ -120,7 +120,7 @@ def from_raw_to_normalized(sequence_length, stride):
 
 if __name__ == "__main__":
 
-    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= conf.sequence_length, stride = conf.stride)
+    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= Conf.sequence_length, stride = Conf.stride)
 
     # Data Augmentation
     x_tr_aug = data_augmentation(x_tr)
