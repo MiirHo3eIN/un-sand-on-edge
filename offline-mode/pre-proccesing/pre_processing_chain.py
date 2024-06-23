@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt 
 import seaborn as sns 
-
+from enum import Enum
 sns.set_style("whitegrid")
 
 
@@ -24,31 +24,52 @@ from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
 from pyshm.augmentation import data_augmentation
 
-anomaly_range = list(range(1, 10)) 
+
+# Define a few global variables 
+class Dataset(Enum):
+    train = "train"
+    validation = "validation"
+    test = "test"
+    anomaly = "anomaly"
+    parent_path = "../../data"
+
+# Define the configuration of the Script
+class config(Enum):
+    sequence_length = 100
+    stride = 10
+    anomaly_range = list(range(1, 10))
+    data_range = (-1, 1)
+    lpf_cutoff = 25 
+    fs = 100
+    lpf_order = 5
+
+
+class torch_loggers(Enum):
+    pass 
+
 
 def get_raw_data(): 
-    data_path = "../../data"
-    df_train = dataInitHealthy(data_path = data_path, dataset_type="train")()  
-    df_validation = dataInitHealthy(data_path = data_path,dataset_type= "validation")()
-    df_test = dataInitHealthy(data_path = data_path,dataset_type="test")()
-    anomalies = dataInitAnomaly(data_path = data_path )()
+    
+    df_train = dataInitHealthy(data_path = Dataset.parent_path, dataset_type= Dataset.train)()  
+    df_validation = dataInitHealthy(data_path = Dataset.parent_path, dataset_type= Dataset.validation)()
+    df_test = dataInitHealthy(data_path = Dataset.parent_path, dataset_type = Dataset.test)()
+    anomalies = dataInitAnomaly(data_path = Dataset.parent_path)()
 
 
     return df_train, df_validation, df_test, anomalies
 
 
 def from_raw_to_normalized(sequence_length, stride): 
-    # Define the data shaper 
-    data_range = (-1, 1)
+
     
     # Define the data shaper 
     data_shaper = shaper(sequence_len = sequence_length, stride = stride)
-    
+    # Define the Data Transformations for the data
     ztransform = Ztranform()
-    minmax_norm = Normalization(feature_range= data_range, clip = False)
+    minmax_norm = Normalization(feature_range= config.data_range, clip = False)
     
     # Define the low pass filter
-    lpf = LowPassFilter(cutoff = 25, fs = 100, order = 5)
+    lpf = LowPassFilter(cutoff = config.lpf_cutoff, fs = config.fs, order = config.lpf_order)
     
     # load feather data
     df_train, df_validation, df_test, anomalies = get_raw_data()
@@ -78,16 +99,16 @@ def from_raw_to_normalized(sequence_length, stride):
 
     # Apply z-trandform
 
-    x_tr = ztransform(x_tr, input_type = 'train')
-    x_val = ztransform(x_val, input_type = 'validation')
-    x_test = ztransform(x_test, input_type = 'test')
-    x_anomaly = {key: ztransform(value, input_type = 'test') for key, value in x_anomaly.items()}
+    x_tr = ztransform(x_tr, input_type = Dataset.train)
+    x_val = ztransform(x_val, input_type = Dataset.validation)
+    x_test = ztransform(x_test, input_type = Dataset.test)
+    x_anomaly = {key: ztransform(value, input_type = Dataset.test) for key, value in x_anomaly.items()}
 
     # Apply min-max normalization
-    x_tr = minmax_norm(x_tr, input_type = 'train')
-    x_val = minmax_norm(x_val, input_type = 'validation')
-    x_test = minmax_norm(x_test, input_type = 'test')
-    x_anomaly = {key: minmax_norm(value, input_type = 'test') for key, value in x_anomaly.items()}
+    x_tr = minmax_norm(x_tr, input_type = Dataset.train)
+    x_val = minmax_norm(x_val, input_type = Dataset.validation)
+    x_test = minmax_norm(x_test, input_type = Dataset.test)
+    x_anomaly = {key: minmax_norm(value, input_type = Dataset.test) for key, value in x_anomaly.items()}
 
     return x_tr, x_val, x_test, x_anomaly
     
@@ -96,7 +117,7 @@ def from_raw_to_normalized(sequence_length, stride):
 
 if __name__ == "__main__":
 
-    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= 100, stride = 10)
+    x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= config.sequence_length, stride = config.stride)
 
     # Data Augmentation
     x_tr_aug = data_augmentation(x_tr)
