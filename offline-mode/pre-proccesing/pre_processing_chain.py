@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 from enum import Enum
 from dataclasses import dataclass
+import torch
 sns.set_style("whitegrid")
 
 
@@ -24,7 +25,7 @@ from pyshm.dataShaper import shaper, MeanCentering
 from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
 from pyshm.augmentation import data_augmentation
-
+from pyshm.torch_logger import torch_logger
 
 # Define a few global variables 
 @dataclass
@@ -34,6 +35,7 @@ class Dataset:
     test = "test"
     anomaly = "anomaly"
     parent_path = "../../data"
+    model_type = "ml" # or "dl" or "sysid"
 
 # Define the configuration of the Script
 @dataclass
@@ -48,7 +50,15 @@ class Conf:
 
 @dataclass
 class torch_loggers:
-    pass 
+    ml_train_logger = "../../pre-prcossed-data/ml/"
+    ml_validation_logger = "../../pre-prcossed-data/ml/"
+    ml_test_logger = "../../pre-prcossed-data/ml/"
+    ml_anomaly_logger = "../../pre-prcossed-data/ml/"
+
+    dl_train_logger = "../../pre-prcossed-data/dl/train/"
+    dl_validation_logger = "../../pre-prcossed-data/dl/validation/"
+    dl_test_logger = "../../pre-prcossed-data/dl/test/"
+    dl_anomaly_logger = "../../pre-prcossed-data/dl/anomaly/"
 
 
 def get_raw_data(): 
@@ -128,4 +138,20 @@ if __name__ == "__main__":
     print(f"Augmented Training shape: {x_tr_aug.shape}")
 
     # Add Save the data
-    # log_data()
+    
+    match Dataset.model_type:
+        case "ml":
+            torch.save(x_val, f"{torch_loggers.ml_validation_logger}/x_validation.pt")
+            torch.save(x_test, f"{torch_loggers.ml_test_logger}/x_test.pt")
+            torch.save(x_anomaly, f"{torch_loggers.ml_anomaly_logger}/x_anomaly.pt")
+            torch.save(x_tr_aug, f"{torch_loggers.ml_train_logger}/x_train_augmented.pt")
+        case "dl":
+            tr_logger = torch_logger(save_path = torch_loggers.dl_train_logger)
+            val_logger = torch_logger(save_path = torch_loggers.dl_validation_logger)
+            test_logger = torch_logger(save_path = torch_loggers.dl_test_logger)
+            
+
+            tr_logger(x_tr_aug)
+            val_logger(x_val)
+            test_logger(x_test)
+            torch.save(x_anomaly, f"{torch_loggers.anomaly_logger}/x_anomaly.pt")
