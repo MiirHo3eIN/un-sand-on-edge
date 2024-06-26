@@ -25,7 +25,7 @@ from pyshm.dataShaper import shaper, MeanCentering
 from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
 from pyshm.augmentation import data_augmentation
-from pyshm.torchLogger import SampleLogger
+from pyshm.torchLogger import TorchSampleLogger
 
 # Define a few global variables 
 @dataclass
@@ -185,9 +185,9 @@ def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
             assert torch_loggers.dl_anomaly_path_log is not None, "Please define the path for the anomaly data."
 
 
-            tr_logger = SampleLogger(save_path = torch_loggers.dl_train_path_log)
-            val_logger = SampleLogger(save_path = torch_loggers.dl_validation_path_log)
-            test_logger = SampleLogger(save_path = torch_loggers.dl_test_path_log)
+            tr_logger = TorchSampleLogger(save_path = torch_loggers.dl_train_path_log)
+            val_logger = TorchSampleLogger(save_path = torch_loggers.dl_validation_path_log)
+            test_logger = TorchSampleLogger(save_path = torch_loggers.dl_test_path_log)
             
 
             tr_logger(x_tr_aug)
