@@ -59,6 +59,8 @@ class torch_loggers:
     dl_test_path_log = "../../pre-prcossed-data/dl/test/"
     dl_anomaly_path_log = "../../pre-prcossed-data/dl/anomaly/"
 
+    device = "cpu"
+
 
 def numpy2torch(x:np.array, data_type: str = "float"):
     __doc__ = r"""
@@ -188,9 +190,9 @@ def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
             print("This might take a while. \n Please be patient.")
             
 
-            tr_logger = TorchSampleLogger(save_path = torch_loggers.dl_train_path_log)
-            val_logger = TorchSampleLogger(save_path = torch_loggers.dl_validation_path_log)
-            test_logger = TorchSampleLogger(save_path = torch_loggers.dl_test_path_log)
+            tr_logger = TorchSampleLogger(save_path = torch_loggers.dl_train_path_log, device = torch_loggers.device)
+            val_logger = TorchSampleLogger(save_path = torch_loggers.dl_validation_path_log, device = torch_loggers.device)
+            test_logger = TorchSampleLogger(save_path = torch_loggers.dl_test_path_log, device = torch_loggers.device)
             
 
             tr_logger(x_tr_aug)
@@ -215,6 +217,6 @@ if __name__ == "__main__":
     x_tr_aug = data_augmentation(x_tr)
     
     # Add Save the data
-    dataset_logger(x_tr_aug, x_val, x_test, x_anomaly, device = "cpu")
+    dataset_logger(x_tr_aug, x_val, x_test, x_anomaly)
 
 
