@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt 
 import seaborn as sns 
-from enum import Enum
 from dataclasses import dataclass
 import torch
 sns.set_style("whitegrid")
@@ -35,7 +34,7 @@ class Dataset:
     test = "test"
     anomaly = "anomaly"
     parent_path = "../../data"
-    model_type = "ml" # or "dl" or "sysid"
+    model_type = "dl" # 'ml' or "dl" or "sysid"
 
 # Define the configuration of the Script
 @dataclass
@@ -174,7 +173,7 @@ def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
             
             torch.save(x_val, f"{torch_loggers.ml_validation_path_log}/x_validation.pt")
             torch.save(x_test, f"{torch_loggers.ml_test_path_log}/x_test.pt")
-            torch.save(x_tr_aug, f"{torch_loggers.ml_train_path_log}/x_train_augmented.pt")
+            torch.save(x_tr_aug, f"{torch_loggers.ml_train_path_log}/x_train.pt")
             torch.save(x_tensor_anomalies, f"{torch_loggers.ml_anomaly_path_log}/x_anomalies.pt")
 
             print("Pre-processed data has been saved Successfully for Machine Learning Models.")      
@@ -184,6 +183,10 @@ def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
             assert torch_loggers.dl_test_path_log is not None, "Please define the path for the test data."
             assert torch_loggers.dl_anomaly_path_log is not None, "Please define the path for the anomaly data."
 
+            print("Saving samples for the DNN Models.\n ")
+            print("Time to have a coffee break :)")
+            print("This might take a while. \n Please be patient.")
+            
 
             tr_logger = TorchSampleLogger(save_path = torch_loggers.dl_train_path_log)
             val_logger = TorchSampleLogger(save_path = torch_loggers.dl_validation_path_log)
@@ -191,10 +194,14 @@ def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
             
 
             tr_logger(x_tr_aug)
+            print("Pre-processed Training data has been saved Successfully for DNN Models.")
             val_logger(x_val)
+            print("Pre-processed validation data has been saved Successfully for DNN Models.")
             test_logger(x_test)
+            print("Pre-processed Test data has been saved Successfully for DNN Models.")
+
             torch.save(x_tensor_anomalies, f"{torch_loggers.dl_anomaly_path_log}/x_anomalies.pt") 
-            print("Pre-processed data has been saved Successfully for DNN Models.")
+            
 
         case "sysid":
             pass
@@ -204,12 +211,10 @@ if __name__ == "__main__":
 
     x_tr, x_val, x_test, x_anomaly = from_raw_to_normalized(sequence_length= Conf.sequence_length, stride = Conf.stride)
 
-    # Data Augmentation
+    # Training Data Augmentation
     x_tr_aug = data_augmentation(x_tr)
-
-    print(f"Augmented Training shape: {x_tr_aug.shape}")
-
+    
     # Add Save the data
-    dataset_logger(x_tr_aug, x_val, x_test, x_anomaly)
+    dataset_logger(x_tr_aug, x_val, x_test, x_anomaly, device = "cpu")
 
 
