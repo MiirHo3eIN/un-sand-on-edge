@@ -21,7 +21,7 @@ sns.set_style("whitegrid")
 import pyshm 
 
 from pyshm.dataloader import dataInitHealthy, dataInitAnomaly
-from pyshm.dataShaper import shaper, MeanCentering
+from pyshm.dataShaper import shaper
 from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
 from pyshm.augmentation import data_augmentation
