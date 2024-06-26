@@ -25,7 +25,7 @@ from pyshm.dataShaper import shaper, MeanCentering
 from pyshm.scaling import Ztranform , Normalization
 from pyshm.filters import LowPassFilter
 from pyshm.augmentation import data_augmentation
-from pyshm.torch_logger import torch_logger
+from pyshm.torchLogger import SampleLogger
 
 # Define a few global variables 
 @dataclass
@@ -50,15 +50,34 @@ class Conf:
 
 @dataclass
 class torch_loggers:
-    ml_train_logger = "../../pre-prcossed-data/ml/"
-    ml_validation_logger = "../../pre-prcossed-data/ml/"
-    ml_test_logger = "../../pre-prcossed-data/ml/"
-    ml_anomaly_logger = "../../pre-prcossed-data/ml/"
+    ml_train_path_log = "../../pre-prcossed-data/ml/"
+    ml_validation_path_log = "../../pre-prcossed-data/ml/"
+    ml_test_path_log = "../../pre-prcossed-data/ml/"
+    ml_anomaly_path_log = "../../pre-prcossed-data/ml/"
 
-    dl_train_logger = "../../pre-prcossed-data/dl/train/"
-    dl_validation_logger = "../../pre-prcossed-data/dl/validation/"
-    dl_test_logger = "../../pre-prcossed-data/dl/test/"
-    dl_anomaly_logger = "../../pre-prcossed-data/dl/anomaly/"
+    dl_train_path_log = "../../pre-prcossed-data/dl/train/"
+    dl_validation_path_log = "../../pre-prcossed-data/dl/validation/"
+    dl_test_path_log = "../../pre-prcossed-data/dl/test/"
+    dl_anomaly_path_log = "../../pre-prcossed-data/dl/anomaly/"
+
+
+def numpy2torch(x:np.array, data_type: str = "float"):
+    __doc__ = r"""
+        Here you can also change the data type; however
+        it is recommended to use float32 for the data, since we will be using float32 for the
+        GAP9 implementation as the first run. 
+        Further for quantization, you can use directly float 16 here as well. 
+        That could be changed at the inference mode as well. 
+        @TODO: @ahmad-mirsalri: Let miirho3ein know if you want to add integers here as well.
+    """  
+    
+    match data_type:
+        case "double":
+            return torch.from_numpy(x).double()
+        case "float":
+            return torch.from_numpy(x).float()
+        case "half-float":
+            return torch.from_numpy(x).half()
 
 
 def get_raw_data(): 
@@ -126,7 +145,60 @@ def from_raw_to_normalized(sequence_length, stride):
     return x_tr, x_val, x_test, x_anomaly
     
 
+def dataset_logger(x_tr, x_val, x_test, x_anomaly) -> None:
+    # Notice that the application_type is set at the beginning of the script.
 
+    # Transfor Anomalies to tensors.
+    if all([isinstance(value, np.ndarray) for value in x_anomaly.values()]):     
+        x_tensor_anomalies = {key: numpy2torch(value) for key, value in x_anomaly.items()}
+    x_val = numpy2torch(x_val) if isinstance(x_val, np.ndarray)  else x_val
+    x_test = numpy2torch(x_test) if isinstance(x_test, np.ndarray) else x_test
+    
+    if not isinstance(x_val,  torch.Tensor):
+        raise ValueError("Validation data should be either a tensor or numpy array.")
+    if not isinstance(x_test, torch.Tensor):
+        raise ValueError("Test data should be either a tensor or numpy array.")
+    if not isinstance(x_tr,  torch.Tensor):
+        raise ValueError("Training data should be either a tensor or numpy array.")
+    if not isinstance(x_tensor_anomalies,  dict) and all([not isinstance(value, torch.Tensor) for value in x_tensor_anomalies.values()]):
+        raise ValueError("Anomalies should be a dictionary of tensors or numpy array.")
+    
+
+    match Dataset.model_type:
+        case "ml":
+            assert torch_loggers.ml_train_path_log is not None, "Please define the path for the training data."
+            assert torch_loggers.ml_validation_path_log is not None, "Please define the path for the validation data."
+            assert torch_loggers.ml_test_path_log is not None, "Please define the path for the test data."
+            assert torch_loggers.ml_anomaly_path_log is not None, "Please define the path for the anomaly data."
+            
+            
+            torch.save(x_val, f"{torch_loggers.ml_validation_path_log}/x_validation.pt")
+            torch.save(x_test, f"{torch_loggers.ml_test_path_log}/x_test.pt")
+            torch.save(x_tr_aug, f"{torch_loggers.ml_train_path_log}/x_train_augmented.pt")
+            torch.save(x_tensor_anomalies, f"{torch_loggers.ml_anomaly_path_log}/x_anomalies.pt")
+
+            print("Pre-processed data has been saved Successfully for Machine Learning Models.")      
+        case "dl":
+            assert torch_loggers.dl_train_path_log is not None, "Please define the path for the training data."
+            assert torch_loggers.dl_validation_path_log is not None, "Please define the path for the validation data."
+            assert torch_loggers.dl_test_path_log is not None, "Please define the path for the test data."
+            assert torch_loggers.dl_anomaly_path_log is not None, "Please define the path for the anomaly data."
+
+
+            tr_logger = SampleLogger(save_path = torch_loggers.dl_train_path_log)
+            val_logger = SampleLogger(save_path = torch_loggers.dl_validation_path_log)
+            test_logger = SampleLogger(save_path = torch_loggers.dl_test_path_log)
+            
+
+            tr_logger(x_tr_aug)
+            val_logger(x_val)
+            test_logger(x_test)
+            torch.save(x_tensor_anomalies, f"{torch_loggers.dl_anomaly_path_log}/x_anomalies.pt") 
+            print("Pre-processed data has been saved Successfully for DNN Models.")
+
+        case "sysid":
+            pass
+    
 
 if __name__ == "__main__":
 
@@ -134,24 +206,10 @@ if __name__ == "__main__":
 
     # Data Augmentation
     x_tr_aug = data_augmentation(x_tr)
-    
+
     print(f"Augmented Training shape: {x_tr_aug.shape}")
 
     # Add Save the data
-    
-    match Dataset.model_type:
-        case "ml":
-            torch.save(x_val, f"{torch_loggers.ml_validation_logger}/x_validation.pt")
-            torch.save(x_test, f"{torch_loggers.ml_test_logger}/x_test.pt")
-            torch.save(x_anomaly, f"{torch_loggers.ml_anomaly_logger}/x_anomaly.pt")
-            torch.save(x_tr_aug, f"{torch_loggers.ml_train_logger}/x_train_augmented.pt")
-        case "dl":
-            tr_logger = torch_logger(save_path = torch_loggers.dl_train_logger)
-            val_logger = torch_logger(save_path = torch_loggers.dl_validation_logger)
-            test_logger = torch_logger(save_path = torch_loggers.dl_test_logger)
-            
+    dataset_logger(x_tr_aug, x_val, x_test, x_anomaly)
 
-            tr_logger(x_tr_aug)
-            val_logger(x_val)
-            test_logger(x_test)
-            torch.save(x_anomaly, f"{torch_loggers.anomaly_logger}/x_anomaly.pt")
+
