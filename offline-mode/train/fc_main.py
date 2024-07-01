@@ -8,8 +8,8 @@ from pyshm.dnnTrain import Train
 from pyshm.autoencoders import FcAutoEncoder
 
 workers_num_ = 8
-local_path_train = "../../data/train-set-healthy/*"
-local_path_valid = "../../data/valid-set-healthy/*"
+local_path_train = "../../pre-prcossed-data/dl/train/*"
+local_path_valid = "../../pre-prcossed-data/dl/validation/*"
 
 
 @dataclass
@@ -40,14 +40,14 @@ def train_():
     Config.batch_size = 16
     Config.epochs = 10
     
-    Config.seq_len = 100
-
+    Config.seq_len = 500
+    Config.latent_dim = 32
     #model!
-    arch_id = "aa00"
-    model = FcAutoEncoder(input_dim= Config.seq_len, 
+    # arch_id = "aa00"
+    model = FcAutoEncoder(input_dim= Config.seq_len,
                           latent_dim=Config.latent_dim, 
                             encoder_activation= "linear",
-                            decoder_activation= "sigmoid")
+                            decoder_activation= "linear",)
     
     summary(model, input_size = (1, Config.seq_len), verbose = 1, depth = 5)
     
@@ -81,3 +81,7 @@ def train_():
     print(f"Training time: {train_time}")
     print(f"Training loss: {train_loss[-1]}")
     print(f"Validation loss: {valid_loss[-1]}")
+    
+    
+if __name__ == "__main__":
+    train_()
