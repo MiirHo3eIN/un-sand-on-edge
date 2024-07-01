@@ -39,8 +39,8 @@ class Dataset:
 # Define the configuration of the Script
 @dataclass
 class Conf:
-    sequence_length = 100
-    stride = 10
+    sequence_length = 500
+    stride = 250
     anomaly_range = list(range(1, 10))
     data_range = (-1, 1)
     lpf_cutoff = 25 
@@ -59,7 +59,7 @@ class torch_loggers:
     dl_test_path_log = "../../pre-prcossed-data/dl/test/"
     dl_anomaly_path_log = "../../pre-prcossed-data/dl/anomaly/"
 
-    device = "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def numpy2torch(x:np.array, data_type: str = "float"):
