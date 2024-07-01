@@ -48,7 +48,7 @@ In order to run all the scripts, you should have downloaded and installed python
 ## Installation 
 To set up the Python virtual environment, use the following commands in the folder of this repository:
 ```bash 
-python3.11 -m venv myenv 
+sudo python3.11 -m venv myenv 
 cd myenv/bin/
 source activate
 ``` 
